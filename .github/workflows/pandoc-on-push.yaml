@@ -1,4 +1,4 @@
-name: Greet Everyone
+name: Build icml from all MDs
 on: [push]
 
 jobs:
@@ -6,12 +6,15 @@ jobs:
     name: Greeting
     runs-on: ubuntu-latest
     steps:
-      # This step uses GitHub's hello-world-javascript-action: https://github.com/actions/hello-world-javascript-action
-      - name: Hello world
-        uses: actions/hello-world-javascript-action@v1
+      - uses: actions/checkout@v2
+      - run: |
+          mkdir output  # create output dir
+          # this will also include README.md
+          echo "::set-env name=FILELIST::$(printf '"%s" ' *.md)"
+      - uses: docker://pandoc/core:2.9
         with:
-          who-to-greet: 'Mona the Octocat'
-        id: hello
-      # This step prints an output (time) from the previous step's action.
-      - name: Echo the greeting's time
-        run: echo 'The time was ${{ steps.hello.outputs.time }}.'
+          args: --output=output/result.icml ${{ env.FILELIST }} --standalone
+      - uses: actions/upload-artifact@master
+        with:
+          name: output
+          path: output
